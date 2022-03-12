@@ -1,7 +1,9 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IframeComponent } from './iframe.component';
 import { Route, RouterModule } from '@angular/router';
+import { NgxChessBoardModule } from 'ngx-chess-board';
+
+import { IframeComponent } from './iframe.component';
 
 const routes: Route[] = [
   {
@@ -12,6 +14,6 @@ const routes: Route[] = [
 
 @NgModule({
   declarations: [IframeComponent],
-  imports: [CommonModule, RouterModule.forChild(routes)],
+  imports: [CommonModule, NgxChessBoardModule, RouterModule.forChild(routes)],
 })
 export class IframeModule {}
