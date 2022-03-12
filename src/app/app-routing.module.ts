@@ -1,10 +1,22 @@
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Routes, RouterModule } from '@angular/router';
 
-const routes: Routes = [];
+const routes: Routes = [
+  {
+    path: 'mainpage',
+    loadChildren: () =>
+      import('./pages/main/main.module').then((m) => m.MainModule),
+  },
+  {
+    path: 'iframepage',
+    loadChildren: () =>
+      import('./pages/iframe/iframe.module').then((m) => m.IframeModule),
+  },
+  { path: '**', redirectTo: 'mainpage' },
+];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}
