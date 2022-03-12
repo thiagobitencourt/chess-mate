@@ -6,4 +6,5 @@ export interface CommunicationService {
   reset(): void;
   onMove(): Observable<ChessBoardMovement>;
   onReset(): Observable<any>;
+  onCheckMate(): Observable<ChessBoardMovement>;
 }

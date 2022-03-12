@@ -3,13 +3,15 @@ import { Observable, Subject } from 'rxjs';
 import { CommunicationService } from './communication-service';
 import { Message } from '../model/message';
 import { MessageType } from '../model/message-type';
+import { ChessBoardMovement } from '../model/movement';
 
 @Injectable({
   providedIn: 'root',
 })
 export class FrameCommunicationService implements CommunicationService {
-  private readonly onMoveSubject = new Subject<any>();
+  private readonly onMoveSubject = new Subject<ChessBoardMovement>();
   private readonly onResetSubject = new Subject<void>();
+  private readonly onCheckMateSubject = new Subject<ChessBoardMovement>();
   private readonly frames: any = {};
   private frameId!: string;
 
@@ -33,6 +35,10 @@ export class FrameCommunicationService implements CommunicationService {
 
   onReset(): Observable<any> {
     return this.onResetSubject.asObservable();
+  }
+
+  onCheckMate(): Observable<ChessBoardMovement> {
+    return this.onCheckMateSubject.asObservable();
   }
 
   private initFrame(): void {
@@ -76,6 +82,13 @@ export class FrameCommunicationService implements CommunicationService {
   private mainPageHandleMessage(message: Message, event: any): void {
     if (message.type === MessageType.INIT) {
       return this.registerIframe(event);
+    }
+
+    if (message.type === MessageType.MOVE) {
+      const movement = message.payload as ChessBoardMovement;
+      if (movement.mate) {
+        this.onCheckMateSubject.next(movement);
+      }
     }
 
     this.dispatchMessage(message);
