@@ -1,3 +1,8 @@
 <div class="chess-board">
-  <ngx-chess-board #board></ngx-chess-board>
+  <ngx-chess-board
+    #board
+    [darkDisabled]="darkDisabled"
+    [lightDisabled]="lightDisabled"
+    (moveChange)="move($event)"
+  ></ngx-chess-board>
 </div>
