@@ -1,14 +1,17 @@
 <section class="main">
-  <h3>Main page</h3>
+  <header class="header">
+    <h3>Main page</h3>
+    <button (click)="reset()">Reset match</button>
+  </header>
 
   <div class="boards">
     <section class="board">
-      <h5 class="player">Player 1</h5>
+      <h4 class="player">Player 1</h4>
       <iframe class="iframe-board" src="iframepage" frameborder="0"></iframe>
     </section>
 
     <section class="board">
-      <h5 class="player">Player 2</h5>
+      <h4 class="player">Player 2</h4>
       <iframe class="iframe-board" src="iframepage" frameborder="0"></iframe>
     </section>
   </div>

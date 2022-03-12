@@ -22,6 +22,11 @@ export class FrameCommunicationService implements CommunicationService {
     this.sendMessage({ type: MessageType.MOVE, payload: movement });
   }
 
+  reset(): void {
+    this.dispatchMessage({ frameId: 'mainPage', type: MessageType.RESET });
+    this.sendMessage({ type: MessageType.RESET });
+  }
+
   onMove(): Observable<any> {
     return this.onMoveSubject.asObservable();
   }
@@ -59,6 +64,10 @@ export class FrameCommunicationService implements CommunicationService {
     switch (message.type) {
       case MessageType.MOVE: {
         this.onMoveSubject.next(message.payload);
+        break;
+      }
+      case MessageType.RESET: {
+        this.onResetSubject.next();
         break;
       }
     }

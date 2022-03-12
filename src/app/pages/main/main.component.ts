@@ -10,4 +10,8 @@ export class MainComponent implements OnInit {
   constructor(private frameCommunication: FrameCommunicationService) {}
 
   ngOnInit(): void {}
+
+  reset(): void {
+    this.frameCommunication.reset();
+  }
 }
