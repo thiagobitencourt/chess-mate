@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, AfterViewChecked, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ChessBoardMovement } from 'src/app/model/movement';
 import { FrameCommunicationService } from 'src/app/services/frame-communication.service';
@@ -8,7 +8,7 @@ import { FrameCommunicationService } from 'src/app/services/frame-communication.
   templateUrl: './main.component.html',
   styleUrls: ['./main.component.scss'],
 })
-export class MainComponent implements OnInit, OnDestroy {
+export class MainComponent implements OnInit, AfterViewChecked, OnDestroy {
   private readonly subscriptions = new Subscription();
   constructor(private frameCommunication: FrameCommunicationService) {}
 
@@ -20,6 +20,10 @@ export class MainComponent implements OnInit, OnDestroy {
       });
 
     this.subscriptions.add(checkSubs);
+  }
+
+  ngAfterViewChecked(): void {
+    this.frameCommunication.restorePrevious();
   }
 
   ngOnDestroy(): void {

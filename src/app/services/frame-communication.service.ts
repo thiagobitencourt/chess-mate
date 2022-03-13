@@ -11,6 +11,9 @@ export class FrameCommunicationService {
   private readonly onMoveSubject = new Subject<ChessBoardMovement>();
   private readonly onResetSubject = new Subject<void>();
   private readonly onCheckMateSubject = new Subject<ChessBoardMovement>();
+  private readonly onResumeSubject = new Subject<string>();
+
+  private readonly CHESS_MATE_STATUS = 'CHESS_MATE_STATUS';
   private readonly frames: any = {};
   private frameId!: string;
 
@@ -24,8 +27,19 @@ export class FrameCommunicationService {
   }
 
   reset(): void {
-    this.dispatchMessage({ frameId: 'mainPage', type: MessageType.RESET });
-    this.sendMessage({ type: MessageType.RESET });
+    this.clearPreviousChessBoardState();
+    this.dispatchMessage({ frameId: this.frameId, type: MessageType.RESET });
+  }
+
+  restorePrevious(): void {
+    const fen = this.retrievePreviousChessBoardState();
+    if (fen) {
+      this.dispatchMessage({
+        frameId: this.frameId,
+        type: MessageType.RESUME,
+        payload: fen,
+      });
+    }
   }
 
   onMove(): Observable<any> {
@@ -38,6 +52,10 @@ export class FrameCommunicationService {
 
   onCheckMate(): Observable<ChessBoardMovement> {
     return this.onCheckMateSubject.asObservable();
+  }
+
+  onResume(): Observable<string> {
+    return this.onResumeSubject.asObservable();
   }
 
   private initFrame(): void {
@@ -68,11 +86,15 @@ export class FrameCommunicationService {
   private iframeHandleMessage(message: Message): void {
     switch (message.type) {
       case MessageType.MOVE: {
-        this.onMoveSubject.next(message.payload);
+        this.onMoveSubject.next(message.payload as ChessBoardMovement);
         break;
       }
       case MessageType.RESET: {
         this.onResetSubject.next();
+        break;
+      }
+      case MessageType.RESUME: {
+        this.onResumeSubject.next(message.payload as string);
         break;
       }
     }
@@ -87,6 +109,9 @@ export class FrameCommunicationService {
       const movement = message.payload as ChessBoardMovement;
       if (movement.mate) {
         this.onCheckMateSubject.next(movement);
+        this.clearPreviousChessBoardState();
+      } else {
+        this.saveCurrentChessBoardState(movement.fen);
       }
     }
 
@@ -112,5 +137,17 @@ export class FrameCommunicationService {
 
   private isMessageValid(message: Message): boolean {
     return !!message.frameId && !!message.type;
+  }
+
+  private saveCurrentChessBoardState(fen: string): void {
+    localStorage.setItem(this.CHESS_MATE_STATUS, fen);
+  }
+
+  private retrievePreviousChessBoardState(): string | null {
+    return localStorage.getItem(this.CHESS_MATE_STATUS);
+  }
+
+  private clearPreviousChessBoardState(): void {
+    localStorage.removeItem(this.CHESS_MATE_STATUS);
   }
 }

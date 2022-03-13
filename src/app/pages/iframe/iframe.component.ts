@@ -55,7 +55,11 @@ export class IframeComponent implements OnInit, OnDestroy {
       .onReset()
       .subscribe(() => this.handleResetBoard());
 
-    this.subscriptions.add(moveSubs).add(resetSubs);
+    const resumeSubs = this.frameCommunication.onResume().subscribe((fen) => {
+      this.board.setFEN(fen);
+    });
+
+    this.subscriptions.add(moveSubs).add(resetSubs).add(resumeSubs);
   }
 
   private handleOpponentMove(movement: any): void {
