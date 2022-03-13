@@ -2,7 +2,6 @@ import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { NgxChessBoardView } from 'ngx-chess-board';
 import { Subscription } from 'rxjs';
 import { ChessBoardMovement, ChessPieceColor } from 'src/app/model/movement';
-import { ChessBoardService } from 'src/app/services/chess-board.service';
 import { FrameCommunicationService } from 'src/app/services/frame-communication.service';
 
 @Component({
@@ -19,12 +18,7 @@ export class IframeComponent implements OnInit, OnDestroy {
   lightDisabled = false;
   darkDisabled = false;
 
-  constructor(
-    private chessBoardService: ChessBoardService,
-    frameCommunication: FrameCommunicationService
-  ) {
-    this.chessBoardService.setCommunication(frameCommunication);
-  }
+  constructor(private frameCommunication: FrameCommunicationService) {}
 
   ngOnInit(): void {
     this.addListeners();
@@ -41,7 +35,7 @@ export class IframeComponent implements OnInit, OnDestroy {
     }
 
     this.disableBlackColor(movement.color === ChessPieceColor.WHITE);
-    this.chessBoardService.move(movement as ChessBoardMovement);
+    this.frameCommunication.move(movement as ChessBoardMovement);
   }
 
   disableBlackColor(disableBlackColor: boolean): void {
@@ -53,12 +47,12 @@ export class IframeComponent implements OnInit, OnDestroy {
   }
 
   private addListeners(): void {
-    const moveSubs = this.chessBoardService
-      .opponentMove()
+    const moveSubs = this.frameCommunication
+      .onMove()
       .subscribe((movement) => this.handleOpponentMove(movement));
 
-    const resetSubs = this.chessBoardService
-      .resetBoard()
+    const resetSubs = this.frameCommunication
+      .onReset()
       .subscribe(() => this.handleResetBoard());
 
     this.subscriptions.add(moveSubs).add(resetSubs);

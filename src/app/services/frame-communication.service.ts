@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
-import { CommunicationService } from './communication-service';
 import { Message } from '../model/message';
 import { MessageType } from '../model/message-type';
 import { ChessBoardMovement } from '../model/movement';
@@ -8,7 +7,7 @@ import { ChessBoardMovement } from '../model/movement';
 @Injectable({
   providedIn: 'root',
 })
-export class FrameCommunicationService implements CommunicationService {
+export class FrameCommunicationService {
   private readonly onMoveSubject = new Subject<ChessBoardMovement>();
   private readonly onResetSubject = new Subject<void>();
   private readonly onCheckMateSubject = new Subject<ChessBoardMovement>();
@@ -42,8 +41,8 @@ export class FrameCommunicationService implements CommunicationService {
   }
 
   private initFrame(): void {
+    this.frameId = this.frameId || Date.now().toString();
     if (this.isIframe()) {
-      this.frameId = this.frameId || Date.now().toString();
       this.sendMessage({ type: MessageType.INIT });
     }
   }
