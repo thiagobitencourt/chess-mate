@@ -1,0 +1,14 @@
+{
+  "targets": {
+    "chess-mate-ca001": {
+      "hosting": {
+        "chess-mate": [
+          "chess-mate-ca001"
+        ]
+      }
+    }
+  },
+  "projects": {
+    "default": "chess-mate-ca001"
+  }
+}

@@ -103,6 +103,16 @@
             ],
             "scripts": []
           }
+        },
+        "deploy": {
+          "builder": "@angular/fire:deploy",
+          "options": {
+            "prerender": false,
+            "ssr": false,
+            "browserTarget": "chess-mate:build:production",
+            "firebaseProject": "chess-mate-ca001",
+            "firebaseHostingSite": "chess-mate-ca001"
+          }
         }
       }
     }
