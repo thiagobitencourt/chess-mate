@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
+import { OnlyIframeGuard } from './guard/only-iframe.guard';
 
 const routes: Routes = [
   {
@@ -9,6 +10,8 @@ const routes: Routes = [
   },
   {
     path: 'iframepage',
+    canActivate: [OnlyIframeGuard],
+    canLoad: [OnlyIframeGuard],
     loadChildren: () =>
       import('./pages/iframe/iframe.module').then((m) => m.IframeModule),
   },
@@ -17,6 +20,7 @@ const routes: Routes = [
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
+  providers: [OnlyIframeGuard],
   exports: [RouterModule],
 })
 export class AppRoutingModule {}
