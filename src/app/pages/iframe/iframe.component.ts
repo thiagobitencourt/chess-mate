@@ -38,7 +38,7 @@ export class IframeComponent implements OnInit, OnDestroy {
     this.frameCommunication.move(movement as ChessBoardMovement);
   }
 
-  disableBlackColor(disableBlackColor: boolean): void {
+  private disableBlackColor(disableBlackColor: boolean): void {
     if (!this.started) {
       this.darkDisabled = disableBlackColor;
       this.lightDisabled = !disableBlackColor;
