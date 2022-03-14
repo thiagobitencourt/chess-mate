@@ -8,7 +8,7 @@ import { AppComponent } from './app.component';
 @NgModule({
   declarations: [AppComponent],
   imports: [BrowserModule, AppRoutingModule, NgxChessBoardModule.forRoot()],
-  providers: [],
+  providers: [{ provide: 'Window', useValue: window }],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

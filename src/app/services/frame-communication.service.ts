@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { Message } from '../model/message';
 import { MessageType } from '../model/message-type';
@@ -17,12 +17,16 @@ export class FrameCommunicationService {
   private readonly frames: any = {};
   private frameId!: string;
 
-  constructor() {
+  constructor(@Inject('Window') private window: Window) {
+    this.init();
+  }
+
+  init(): void {
     this.listenToMessages();
     this.initFrame();
   }
 
-  move(movement: any): void {
+  move(movement: ChessBoardMovement): void {
     this.sendMessage({ type: MessageType.MOVE, payload: movement });
   }
 
@@ -58,6 +62,10 @@ export class FrameCommunicationService {
     return this.onResumeSubject.asObservable();
   }
 
+  isIframe(): boolean {
+    return this.window.parent !== this.window.self;
+  }
+
   private initFrame(): void {
     this.frameId = this.frameId || Date.now().toString();
     if (this.isIframe()) {
@@ -65,13 +73,16 @@ export class FrameCommunicationService {
     }
   }
 
-  private sendMessage(message: Partial<Message>, target = window.parent): void {
+  private sendMessage(
+    message: Partial<Message>,
+    target = this.window.parent
+  ): void {
     message.frameId = message.frameId || this.frameId;
-    target.postMessage(message, window.location.origin);
+    target.postMessage(message, this.window.location.origin);
   }
 
   private listenToMessages(): void {
-    window.addEventListener('message', (event) => {
+    this.window.addEventListener('message', (event) => {
       const message = event.data as Message;
       if (!this.isMessageValid(message)) {
         return;
@@ -129,10 +140,6 @@ export class FrameCommunicationService {
   private registerIframe(event: any): void {
     const { data, source } = event;
     this.frames[data.frameId] = source;
-  }
-
-  private isIframe(): boolean {
-    return window.parent !== window.self;
   }
 
   private isMessageValid(message: Message): boolean {
