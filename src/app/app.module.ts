@@ -4,13 +4,19 @@ import { NgxChessBoardModule } from 'ngx-chess-board';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { initializeApp,provideFirebaseApp } from '@angular/fire/app';
 import { environment } from '../environments/environment';
-import { provideDatabase,getDatabase } from '@angular/fire/database';
+import { AngularFireModule } from '@angular/fire/compat';
+import { AngularFireDatabaseModule } from '@angular/fire/compat/database';
 
 @NgModule({
   declarations: [AppComponent],
-  imports: [BrowserModule, AppRoutingModule, NgxChessBoardModule.forRoot(), provideFirebaseApp(() => initializeApp(environment.firebase)), provideDatabase(() => getDatabase())],
+  imports: [
+    BrowserModule,
+    AppRoutingModule,
+    NgxChessBoardModule.forRoot(),
+    AngularFireModule.initializeApp(environment.firebase),
+    AngularFireDatabaseModule,
+  ],
   providers: [{ provide: 'Window', useValue: window }],
   bootstrap: [AppComponent],
 })
