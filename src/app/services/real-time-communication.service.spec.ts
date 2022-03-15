@@ -1,12 +1,17 @@
 import { TestBed } from '@angular/core/testing';
+import { AngularFireDatabase } from '@angular/fire/compat/database';
 
 import { RealTimeCommunicationService } from './real-time-communication.service';
 
 describe('RealTimeCommunicationService', () => {
   let service: RealTimeCommunicationService;
+  let mockDb;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    mockDb = {};
+    TestBed.configureTestingModule({
+      providers: [{ provide: AngularFireDatabase, useValue: mockDb }],
+    });
     service = TestBed.inject(RealTimeCommunicationService);
   });
 
