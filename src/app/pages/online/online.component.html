@@ -1,0 +1,10 @@
+<button (click)="newMatch()">Create new game</button>
+<input type="text" #code placeholder="Match code" />
+<button (click)="joinMatch(code.value)">join game</button>
+
+{{ match?.code }}
+
+<div *ngIf="match?.code">
+  <button (click)="move()">Mover</button>
+  <button (click)="leaveMatch()">Leave</button>
+</div>

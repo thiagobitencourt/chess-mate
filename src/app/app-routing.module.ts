@@ -15,6 +15,11 @@ const routes: Routes = [
     loadChildren: () =>
       import('./pages/iframe/iframe.module').then((m) => m.IframeModule),
   },
+  {
+    path: 'onlinepage',
+    loadChildren: () =>
+      import('./pages/online/online.module').then((m) => m.OnlineModule),
+  },
   { path: '**', redirectTo: 'mainpage' },
 ];
 
