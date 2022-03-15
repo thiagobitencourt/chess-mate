@@ -1,10 +1,28 @@
-<button (click)="newMatch()">Create new game</button>
-<input type="text" #code placeholder="Match code" />
-<button (click)="joinMatch(code.value)">join game</button>
+<section *ngIf="!match">
+  <h4>Chess Mate - New match</h4>
 
-{{ match?.code }}
+  <div>
+    <button (click)="newMatch()">Create new game</button>
 
-<div *ngIf="match?.code">
-  <button (click)="move()">Mover</button>
-  <button (click)="leaveMatch()">Leave</button>
+    <input type="text" #code placeholder="Match code" />
+    <button (click)="joinMatch(code.value)">join game</button>
+  </div>
+</section>
+
+<div *ngIf="match">
+  <div class="match-header">
+    <button (click)="leaveMatch()">Leave</button>
+    <span>
+      Code: <strong>{{ match.code }}</strong>
+    </span>
+  </div>
+
+  <div>
+    <ngx-chess-board
+      #board
+      [darkDisabled]="darkDisabled"
+      [lightDisabled]="lightDisabled"
+      (moveChange)="move($event)"
+    ></ngx-chess-board>
+  </div>
 </div>

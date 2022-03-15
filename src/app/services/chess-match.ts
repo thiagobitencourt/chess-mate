@@ -22,7 +22,7 @@ export class ChessMatch {
 
   constructor(database: AngularFireDatabase, matchCode?: string) {
     this.code = matchCode || this.getNewMatchCode();
-    this.match = database.object(`match/${this.code}`);
+    this.match = database.object<OnlineMessage>(`match/${this.code}`);
     this.owner = !matchCode;
 
     this.init();
@@ -30,6 +30,8 @@ export class ChessMatch {
   }
 
   move(movement: ChessBoardMovement): void {
+    // Failed when stalemate movement property are undefined
+    movement.stalemate = movement.stalemate || false;
     this.justMoved = true;
     this.match.update({
       matchCode: this.code,
