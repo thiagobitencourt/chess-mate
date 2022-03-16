@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 import { Subject } from 'rxjs';
+import { HeaderComponent } from 'src/app/components/header/header.component';
 import { ChessBoardMovement } from 'src/app/model/movement';
 import { FrameCommunicationService } from 'src/app/services/frame-communication.service';
 import { WindowMock } from 'src/teste-utils';
@@ -20,7 +22,8 @@ describe('MainComponent', () => {
   beforeEach(async () => {
     windowMock = WindowMock as any;
     await TestBed.configureTestingModule({
-      declarations: [MainComponent],
+      imports: [RouterTestingModule],
+      declarations: [MainComponent, HeaderComponent],
       providers: [
         {
           provide: FrameCommunicationService,

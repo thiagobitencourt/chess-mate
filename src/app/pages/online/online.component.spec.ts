@@ -7,7 +7,9 @@ import {
 } from '@angular/core/testing';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { By } from '@angular/platform-browser';
+import { RouterTestingModule } from '@angular/router/testing';
 import { of, Subject } from 'rxjs';
+import { HeaderComponent } from 'src/app/components/header/header.component';
 import { ChessBoardMovement } from 'src/app/model/movement';
 import { OnlineMessage } from 'src/app/model/online-message';
 import { ChessMatch } from 'src/app/services/chess-match';
@@ -30,7 +32,8 @@ describe('OnlineComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [OnlineComponent],
+      imports: [RouterTestingModule],
+      declarations: [OnlineComponent, HeaderComponent],
       providers: [
         { provide: AngularFireDatabase, useValue: database },
         { provide: RealTimeCommunicationService, useValue: rtCommunication },
@@ -306,6 +309,7 @@ describe('OnlineComponent', () => {
     } as any;
 
     spyOn(rtCommunication, 'joinMatch').and.returnValue(match);
+    component.board = { move: jasmine.createSpy('move') } as any;
     component.joinMatch(matchCodeMock);
 
     expect(rtCommunication.joinMatch).toHaveBeenCalled();
