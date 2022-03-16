@@ -1,0 +1,37 @@
+$gap-size: 40px;
+$color: #7c7c7c;
+$blue: #a9cdf2;
+
+.header {
+  display: flex;
+  align-items: stretch;
+  gap: $gap-size;
+  margin-bottom: 20px;
+  padding: 15px;
+
+  .logo {
+    height: 65px;
+    width: auto;
+  }
+
+  .menu {
+    display: flex;
+    gap: $gap-size;
+
+    a.menu-item {
+      text-decoration: none;
+      color: $color;
+      text-transform: uppercase;
+      font-weight: bold;
+
+      display: flex;
+      align-items: center;
+
+      &:hover,
+      &.active-item {
+        margin-bottom: -5px;
+        border-bottom: 5px solid $blue;
+      }
+    }
+  }
+}

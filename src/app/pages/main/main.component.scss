@@ -1,6 +1,4 @@
 .main {
-  padding: 10px;
-
   .boards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
@@ -10,6 +8,8 @@
     .board {
       .player {
         text-align: center;
+        text-transform: uppercase;
+        color: #5c5c5c;
       }
 
       .iframe-board {

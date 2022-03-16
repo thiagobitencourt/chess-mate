@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { OnlineComponent } from './online.component';
 import { Route, RouterModule } from '@angular/router';
 import { NgxChessBoardModule } from 'ngx-chess-board';
+import { ComponentsModule } from 'src/app/components/components.module';
 
 const routes: Route[] = [
   {
@@ -13,6 +14,11 @@ const routes: Route[] = [
 
 @NgModule({
   declarations: [OnlineComponent],
-  imports: [CommonModule, NgxChessBoardModule, RouterModule.forChild(routes)],
+  imports: [
+    CommonModule,
+    ComponentsModule,
+    NgxChessBoardModule,
+    RouterModule.forChild(routes),
+  ],
 })
 export class OnlineModule {}
