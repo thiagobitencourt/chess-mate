@@ -1,4 +1,4 @@
-<section *ngIf="!match">
+<section id="create-game" *ngIf="!match">
   <h4>Chess Mate - New match</h4>
 
   <div>
@@ -9,7 +9,7 @@
   </div>
 </section>
 
-<div *ngIf="match">
+<div id="chess-board" *ngIf="match">
   <div class="match-header">
     <button (click)="leaveMatch()">Leave</button>
     <span>

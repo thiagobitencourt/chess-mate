@@ -14,11 +14,10 @@ export class OnlineComponent implements OnDestroy {
   private readonly subscriptions = new Subscription();
   @ViewChild('board', { static: false }) board!: NgxChessBoardView;
 
-  justMuvedByOpponent!: boolean;
-  started!: boolean;
   lightDisabled!: boolean;
   darkDisabled!: boolean;
   match!: ChessMatch | null;
+  private justMuvedByOpponent!: boolean;
 
   constructor(private rtCommunication: RealTimeCommunicationService) {
     this.setInitialValues();
@@ -56,41 +55,34 @@ export class OnlineComponent implements OnDestroy {
   private setUpListeners(): void {
     if (this.match?.owner) {
       this.match.onJoined().subscribe(() => {
-        alert('a new player has joined the match!');
-        this.startMatch();
+        alert('A player has joined the match!');
+        this.lightDisabled = false;
       });
     }
 
     this.match?.onMove().subscribe((movement) => {
       if (movement) {
         this.justMuvedByOpponent = true;
-        if (!this.started) {
-          this.started = true;
-          this.darkDisabled = false;
-        }
+        this.darkDisabled = false;
+
         this.handleCheckMate(movement);
         this.board.move(movement.move);
       }
     });
 
     this.match?.onLeft().subscribe(() => {
-      alert('It seems that yout opponent has left the match');
+      alert('Your opponent has left the match!');
       this.finishMatch();
     });
   }
 
-  handleCheckMate(movement: ChessBoardMovement): void {
+  private handleCheckMate(movement: ChessBoardMovement): void {
     if (movement.mate) {
       setTimeout(() => {
         alert(`The ${movement.color} pieces won this match!`);
         this.finishMatch();
       }, 500);
     }
-  }
-
-  private startMatch(): void {
-    this.started = true;
-    this.lightDisabled = false;
   }
 
   private finishMatch(): void {
@@ -100,7 +92,6 @@ export class OnlineComponent implements OnDestroy {
 
   private setInitialValues(): void {
     this.justMuvedByOpponent = false;
-    this.started = false;
     this.lightDisabled = true;
     this.darkDisabled = true;
     this.match = null;
