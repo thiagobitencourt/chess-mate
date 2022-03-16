@@ -1,5 +1,13 @@
 /* You can add global styles to this file, and also import other style files */
+@import "../node_modules/primeng/resources/themes/saga-blue/theme.css";
+@import "../node_modules/primeng/resources/primeng.min.css";
+
 body {
   padding: 0;
   margin: 0;
+}
+
+:root {
+  --text-color: #7c7c7c;
+  --blue-color: #2196f3;
 }

@@ -79,6 +79,15 @@ describe('OnlineComponent', () => {
     expect(chessBoard).toBeTruthy();
   });
 
+  it('should display the match code after the match is created or joined', () => {
+    component.match = { code: matchCodeMock } as ChessMatch;
+    fixture.detectChanges();
+
+    const codeElement = fixture.debugElement.query(By.css('.code'));
+    expect(codeElement).toBeTruthy();
+    expect(codeElement.nativeElement.innerText).toBe(matchCodeMock);
+  });
+
   it('should block both "sides" of the board: black and white pieces', () => {
     expect(component.darkDisabled).toBeTrue();
     expect(component.lightDisabled).toBeTrue();
@@ -88,6 +97,14 @@ describe('OnlineComponent', () => {
     component.newMatch();
     expect(component.match).toBeDefined();
     expect(component.match?.owner).toBeTrue();
+  });
+
+  it('should copy the match code to the clipboard', () => {
+    component.match = { code: matchCodeMock } as ChessMatch;
+    spyOn(navigator.clipboard, 'writeText').and.stub();
+
+    component.copyCode();
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(matchCodeMock);
   });
 
   it('should not break when null is returned from createMatch method', () => {

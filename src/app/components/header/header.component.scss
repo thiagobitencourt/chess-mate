@@ -1,6 +1,4 @@
 $gap-size: 40px;
-$color: #7c7c7c;
-$blue: #a9cdf2;
 
 .header {
   display: flex;
@@ -20,7 +18,7 @@ $blue: #a9cdf2;
 
     a.menu-item {
       text-decoration: none;
-      color: $color;
+      color: var(--text-color);
       text-transform: uppercase;
       font-weight: bold;
 
@@ -30,7 +28,7 @@ $blue: #a9cdf2;
       &:hover,
       &.active-item {
         margin-bottom: -5px;
-        border-bottom: 5px solid $blue;
+        border-bottom: 5px solid var(--blue-color);
       }
     }
   }

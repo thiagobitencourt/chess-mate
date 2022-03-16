@@ -52,6 +52,10 @@ export class OnlineComponent implements OnDestroy {
     this.handleCheckMate(movement);
   }
 
+  copyCode() {
+    navigator.clipboard.writeText(this.match?.code as string);
+  }
+
   private setUpListeners(): void {
     if (this.match?.owner) {
       this.match.onJoined().subscribe(() => {

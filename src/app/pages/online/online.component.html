@@ -1,29 +1,53 @@
 <app-header></app-header>
-<section id="create-game" *ngIf="!match">
-  <h4>Chess Mate - New match</h4>
+<section class="page">
+  <h4 class="title">
+    <span>Chess Mate</span>
+    <span *ngIf="match?.code"> - Code: </span>
+    <span
+      class="code"
+      *ngIf="match?.code"
+      (click)="copyCode()"
+      title="Copy code"
+    >
+      {{ match?.code }}
+    </span>
+  </h4>
+  <div class="create-fame-form" id="create-game" *ngIf="!match">
+    <button pButton (click)="newMatch()" label="Create a new game"></button>
+    <p-divider align="center"> OR </p-divider>
+    <input
+      type="text"
+      pInputText
+      #code
+      minlength="6"
+      maxlength="6"
+      placeholder="Match code"
+    />
+    <button
+      pButton
+      label="Join game"
+      (click)="joinMatch(code.value)"
+      [disabled]="!code.value"
+    ></button>
+  </div>
 
-  <div>
-    <button (click)="newMatch()">Create new game</button>
+  <div id="chess-board" *ngIf="match">
+    <button
+      pButton
+      type="button"
+      label="Leave game"
+      class="leave-game-button p-button-danger p-button-outlined"
+      styleClass="p-button-sm"
+      (click)="leaveMatch()"
+    ></button>
 
-    <input type="text" #code placeholder="Match code" />
-    <button (click)="joinMatch(code.value)">join game</button>
+    <div>
+      <ngx-chess-board
+        #board
+        [darkDisabled]="darkDisabled"
+        [lightDisabled]="lightDisabled"
+        (moveChange)="move($event)"
+      ></ngx-chess-board>
+    </div>
   </div>
 </section>
-
-<div id="chess-board" *ngIf="match">
-  <div class="match-header">
-    <button (click)="leaveMatch()">Leave</button>
-    <span>
-      Code: <strong>{{ match.code }}</strong>
-    </span>
-  </div>
-
-  <div>
-    <ngx-chess-board
-      #board
-      [darkDisabled]="darkDisabled"
-      [lightDisabled]="lightDisabled"
-      (moveChange)="move($event)"
-    ></ngx-chess-board>
-  </div>
-</div>

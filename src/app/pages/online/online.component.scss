@@ -1,0 +1,34 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .title {
+    font-weight: bold;
+    text-transform: uppercase;
+    color: var(--text-color);
+
+    .code {
+      color: var(--blue-color);
+
+      &:hover {
+        text-decoration: underline;
+        cursor: pointer;
+      }
+    }
+  }
+
+  .create-fame-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    button {
+      text-align: center;
+    }
+  }
+
+  .leave-game-button {
+    margin-bottom: 10px;
+  }
+}

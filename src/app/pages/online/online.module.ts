@@ -4,6 +4,9 @@ import { OnlineComponent } from './online.component';
 import { Route, RouterModule } from '@angular/router';
 import { NgxChessBoardModule } from 'ngx-chess-board';
 import { ComponentsModule } from 'src/app/components/components.module';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { DividerModule } from 'primeng/divider';
 
 const routes: Route[] = [
   {
@@ -17,6 +20,9 @@ const routes: Route[] = [
   imports: [
     CommonModule,
     ComponentsModule,
+    ButtonModule,
+    InputTextModule,
+    DividerModule,
     NgxChessBoardModule,
     RouterModule.forChild(routes),
   ],
