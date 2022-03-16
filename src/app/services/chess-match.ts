@@ -14,7 +14,7 @@ export class ChessMatch {
   private left = false;
   private justMoved = false;
   private match!: AngularFireObject<OnlineMessage>;
-  private matchSubs!: Subscription;
+  private subscription = new Subscription();
 
   private readonly joinedSubject = new Subject<void>();
   private readonly leftSubject = new Subject<void>();
@@ -33,16 +33,13 @@ export class ChessMatch {
     // Failed when stalemate movement property are undefined
     movement.stalemate = movement.stalemate || false;
     this.justMoved = true;
-    this.match.update({
-      matchCode: this.code,
-      move: movement,
-    });
+    this.match.update({ move: movement } as OnlineMessage);
   }
 
   leave(): void {
     if (!this.left) {
       this.left = true;
-      this.match.set({ left: true } as OnlineMessage);
+      this.match.update({ left: true } as OnlineMessage);
       this.closeMatch();
     }
   }
@@ -69,7 +66,7 @@ export class ChessMatch {
   }
 
   private valueChanges(): void {
-    this.matchSubs = this.match
+    const matchSubs = this.match
       .valueChanges()
       .subscribe((message: OnlineMessage | null) => {
         if (!message) {
@@ -93,12 +90,12 @@ export class ChessMatch {
         }
         this.justMoved = false;
       });
+
+    this.subscription.add(matchSubs);
   }
 
   private closeMatch(): void {
-    if (this.matchSubs) {
-      this.matchSubs.unsubscribe();
-    }
+    this.subscription.unsubscribe();
   }
 
   private getNewMatchCode(): string {
