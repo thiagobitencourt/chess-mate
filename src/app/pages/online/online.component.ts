@@ -40,6 +40,9 @@ export class OnlineComponent implements OnDestroy {
   joinMatch(matchCode: string): void {
     this.match = this.rtCommunication.joinMatch(matchCode);
     this.setUpListeners();
+    setTimeout(() => {
+      this.board?.reverse();
+    }, 300);
   }
 
   leaveMatch(): void {

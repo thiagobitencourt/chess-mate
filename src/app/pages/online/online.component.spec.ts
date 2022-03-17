@@ -165,6 +165,14 @@ describe('OnlineComponent', () => {
     expect(component.match?.code).toBe(matchCodeMock);
   });
 
+  it('should reverse the board on joining a match', fakeAsync(() => {
+    component.board = { reverse: jasmine.createSpy('reverse') } as any;
+    component.joinMatch(matchCodeMock);
+
+    tick(350);
+    expect(component.board.reverse).toHaveBeenCalled();
+  }));
+
   it('should NOT listen to onJoined event on joining a match', () => {
     const match = {
       owner: false,
