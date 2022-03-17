@@ -1,19 +1,34 @@
-import { TestBed, waitForAsync } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { NgxChessBoardModule } from 'ngx-chess-board';
+import { Subject } from 'rxjs';
 import { WindowMock } from 'src/teste-utils';
 import { MessageType } from '../model/message-type';
-import { ChessBoardMovement } from '../model/movement';
+import { ChessBoardMovement, ChessPieceColor } from '../model/movement';
 import { FrameCommunicationService } from './frame-communication.service';
+import { NotificationService } from './notification.service';
 
 describe('FrameCommunicationService', () => {
   let service: FrameCommunicationService;
   let windowMock: any;
+  const resetMatchSubject = new Subject<boolean>();
+  const checkMateSubject = new Subject<boolean>();
+  const restoreSubject = new Subject<boolean>();
+
+  const notificationMock = {
+    resetMatch: () => resetMatchSubject.asObservable(),
+    notifyCheckmate: (color: ChessPieceColor) =>
+      checkMateSubject.asObservable(),
+    restorePreviousMatch: () => restoreSubject.asObservable(),
+  };
 
   beforeEach(() => {
     windowMock = WindowMock;
     TestBed.configureTestingModule({
       imports: [NgxChessBoardModule.forRoot()],
-      providers: [{ provide: 'Window', useFactory: () => WindowMock }],
+      providers: [
+        { provide: NotificationService, useValue: notificationMock },
+        { provide: 'Window', useFactory: () => WindowMock },
+      ],
     });
     service = TestBed.inject(FrameCommunicationService);
   });
@@ -310,7 +325,7 @@ describe('FrameCommunicationService', () => {
     );
   });
 
-  it('should emit the "onCheckMate" subscription when a player win the match', (done: any) => {
+  it('should display a notification message when a player win the match', () => {
     let handler: ((ev: any) => void) | null = null;
     spyOn(windowMock, 'addEventListener').and.callFake(
       (event: string, messageHandler: (ev: any) => void) => {
@@ -321,12 +336,7 @@ describe('FrameCommunicationService', () => {
     spyOn(localStorage, 'removeItem').and.stub();
     service = TestBed.inject(FrameCommunicationService);
     spyOn(service, 'isIframe').and.returnValue(false);
-
-    service.onCheckMate().subscribe((movement: ChessBoardMovement) => {
-      expect(movement.move).toBe('a1b2');
-      expect(movement.mate).toBeTrue();
-      done();
-    });
+    spyOn(notificationMock, 'notifyCheckmate').and.callThrough();
 
     service.init();
     expect(handler).not.toBeNull();
@@ -336,15 +346,75 @@ describe('FrameCommunicationService', () => {
         data: {
           frameId: 'any-id',
           type: MessageType.MOVE,
-          payload: { move: 'a1b2', mate: true },
+          payload: { move: 'a1b2', mate: true, color: 'black' },
         },
       });
     }
 
     expect(localStorage.removeItem).toHaveBeenCalledWith('CHESS_MATE_STATUS');
+    expect(notificationMock.notifyCheckmate).toHaveBeenCalledWith(
+      ChessPieceColor.BLACK
+    );
   });
 
-  it('should dispatch "Reset" message and clear the chess board state', () => {
+  it('should dispatch "Reset" message and clear the chess board state when create a new game after a checkmate', () => {
+    let handler: ((ev: any) => void) | null = null;
+    spyOn(windowMock, 'addEventListener').and.callFake(
+      (event: string, messageHandler: (ev: any) => void) => {
+        handler = messageHandler;
+      }
+    );
+
+    spyOn(localStorage, 'removeItem').and.stub();
+    service = TestBed.inject(FrameCommunicationService);
+    spyOn(service, 'isIframe').and.returnValue(false);
+    spyOn(notificationMock, 'notifyCheckmate').and.callThrough();
+
+    service.init();
+    expect(handler).not.toBeNull();
+
+    const frame1 = 'id-frame-1';
+    const frame2 = 'id-frame-2';
+    const source = { postMessage: jasmine.createSpy('postMessage') };
+    const resetMessage = {
+      frameId: jasmine.any(String),
+      type: MessageType.RESET,
+    };
+
+    if (!!handler) {
+      // Init message to register frames
+      const data1 = { frameId: frame1, type: MessageType.INIT };
+      const data2 = { frameId: frame2, type: MessageType.INIT };
+
+      (handler as (e: any) => void)({
+        data: data1,
+        source,
+      });
+
+      (handler as (e: any) => void)({
+        data: data2,
+        source,
+      });
+
+      (handler as (e: any) => void)({
+        data: {
+          frameId: 'any-id',
+          type: MessageType.MOVE,
+          payload: { move: 'a1b2', mate: true, color: 'black' },
+        },
+      });
+    }
+
+    checkMateSubject.next(true);
+    expect(notificationMock.notifyCheckmate).toHaveBeenCalled();
+    expect(localStorage.removeItem).toHaveBeenCalledWith('CHESS_MATE_STATUS');
+    expect(source.postMessage).toHaveBeenCalledWith(
+      resetMessage,
+      windowMock.location.origin
+    );
+  });
+
+  it('should dispatch "Reset" message and clear the chess board state when user confirms the action', () => {
     let handler: ((ev: any) => void) | null = null;
     spyOn(windowMock, 'addEventListener').and.callFake(
       (event: string, messageHandler: (ev: any) => void) => {
@@ -383,7 +453,11 @@ describe('FrameCommunicationService', () => {
       });
     }
 
+    spyOn(notificationMock, 'resetMatch').and.callThrough();
     service.reset();
+
+    expect(notificationMock.resetMatch).toHaveBeenCalled();
+    resetMatchSubject.next(true);
 
     expect(localStorage.removeItem).toHaveBeenCalledWith('CHESS_MATE_STATUS');
     expect(source.postMessage).toHaveBeenCalledTimes(2);
@@ -433,8 +507,7 @@ describe('FrameCommunicationService', () => {
       });
     }
 
-    service.restorePrevious();
-
+    restoreSubject.next(true);
     expect(localStorage.getItem).toHaveBeenCalledWith('CHESS_MATE_STATUS');
     expect(source.postMessage).toHaveBeenCalledTimes(2);
     expect(source.postMessage).toHaveBeenCalledWith(
@@ -478,7 +551,48 @@ describe('FrameCommunicationService', () => {
       });
     }
 
-    service.restorePrevious();
+    expect(localStorage.getItem).toHaveBeenCalledWith('CHESS_MATE_STATUS');
+    expect(source.postMessage).not.toHaveBeenCalled();
+  });
+
+  it('should NOT dispatch "Resume" message when the user chose to create a new game', () => {
+    let handler: ((ev: any) => void) | null = null;
+    spyOn(windowMock, 'addEventListener').and.callFake(
+      (event: string, messageHandler: (ev: any) => void) => {
+        handler = messageHandler;
+      }
+    );
+
+    spyOn(localStorage, 'getItem').and.returnValue('fen-exists');
+    service = TestBed.inject(FrameCommunicationService);
+    spyOn(service, 'isIframe').and.returnValue(false);
+    spyOn(notificationMock, 'restorePreviousMatch').and.callThrough();
+
+    service.init();
+    expect(handler).not.toBeNull();
+
+    const frame1 = 'id-frame-1';
+    const frame2 = 'id-frame-2';
+    const source = { postMessage: jasmine.createSpy('postMessage') };
+
+    if (!!handler) {
+      // Init message to register frames
+      const data1 = { frameId: frame1, type: MessageType.INIT };
+      const data2 = { frameId: frame2, type: MessageType.INIT };
+
+      (handler as (e: any) => void)({
+        data: data1,
+        source,
+      });
+
+      (handler as (e: any) => void)({
+        data: data2,
+        source,
+      });
+    }
+
+    expect(notificationMock.restorePreviousMatch).toHaveBeenCalled();
+    restoreSubject.next(false);
 
     expect(localStorage.getItem).toHaveBeenCalledWith('CHESS_MATE_STATUS');
     expect(source.postMessage).not.toHaveBeenCalled();

@@ -3,6 +3,7 @@ import { NgxChessBoardView } from 'ngx-chess-board';
 import { Subscription } from 'rxjs';
 import { ChessBoardMovement } from 'src/app/model/movement';
 import { ChessMatch } from 'src/app/services/chess-match';
+import { NotificationService } from 'src/app/services/notification.service';
 import { RealTimeCommunicationService } from 'src/app/services/real-time-communication.service';
 
 @Component({
@@ -18,8 +19,12 @@ export class OnlineComponent implements OnDestroy {
   darkDisabled!: boolean;
   match!: ChessMatch | null;
   private justMuvedByOpponent!: boolean;
+  private started = false;
 
-  constructor(private rtCommunication: RealTimeCommunicationService) {
+  constructor(
+    private rtCommunication: RealTimeCommunicationService,
+    private notificationService: NotificationService
+  ) {
     this.setInitialValues();
   }
 
@@ -58,35 +63,49 @@ export class OnlineComponent implements OnDestroy {
 
   private setUpListeners(): void {
     if (this.match?.owner) {
-      this.match.onJoined().subscribe(() => {
-        alert('A player has joined the match!');
-        this.lightDisabled = false;
-      });
+      this.match.onJoined().subscribe(() => this.handleJoined());
     }
 
-    this.match?.onMove().subscribe((movement) => {
-      if (movement) {
-        this.justMuvedByOpponent = true;
+    this.match?.onMove().subscribe((movement) => this.handleMove(movement));
+    this.match?.onLeft().subscribe(() => this.handleLeft());
+  }
+
+  private handleMove(movement: ChessBoardMovement): void {
+    if (movement) {
+      this.justMuvedByOpponent = true;
+      if (!this.started) {
+        this.started = true;
         this.darkDisabled = false;
-
-        this.handleCheckMate(movement);
-        this.board.move(movement.move);
       }
-    });
 
-    this.match?.onLeft().subscribe(() => {
-      alert('Your opponent has left the match!');
-      this.finishMatch();
-    });
+      this.handleCheckMate(movement);
+      this.board.move(movement.move);
+    }
   }
 
   private handleCheckMate(movement: ChessBoardMovement): void {
     if (movement.mate) {
-      setTimeout(() => {
-        alert(`The ${movement.color} pieces won this match!`);
-        this.finishMatch();
-      }, 500);
+      this.notificationService
+        .notifyCheckmateOnline(movement.color)
+        .subscribe((newGame: boolean) => {
+          if (newGame) {
+            this.finishMatch();
+          }
+        });
     }
+  }
+
+  private handleJoined(): void {
+    this.notificationService.notifyPlayerJoined().subscribe(() => {
+      this.started = true;
+      this.lightDisabled = false;
+    });
+  }
+
+  private handleLeft(): void {
+    this.notificationService
+      .notifyPlayerLeft()
+      .subscribe(() => this.finishMatch());
   }
 
   private finishMatch(): void {
