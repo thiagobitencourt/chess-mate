@@ -10,15 +10,27 @@ import { By } from '@angular/platform-browser';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of, Subject } from 'rxjs';
 import { HeaderComponent } from 'src/app/components/header/header.component';
-import { ChessBoardMovement } from 'src/app/model/movement';
+import { ChessBoardMovement, ChessPieceColor } from 'src/app/model/movement';
 import { OnlineMessage } from 'src/app/model/online-message';
 import { ChessMatch } from 'src/app/services/chess-match';
+import { NotificationService } from 'src/app/services/notification.service';
 import { RealTimeCommunicationService } from 'src/app/services/real-time-communication.service';
 import { OnlineComponent } from './online.component';
 
 describe('OnlineComponent', () => {
   let component: OnlineComponent;
   let fixture: ComponentFixture<OnlineComponent>;
+
+  const playerJoinedSubject = new Subject<boolean>();
+  const checkMateSubject = new Subject<boolean>();
+  const playerLeftSubject = new Subject<boolean>();
+
+  const notificationMock = {
+    notifyPlayerJoined: () => playerJoinedSubject.asObservable(),
+    notifyCheckmateOnline: (color: ChessPieceColor) =>
+      checkMateSubject.asObservable(),
+    notifyPlayerLeft: () => playerLeftSubject.asObservable(),
+  };
 
   const matchCodeMock = 'A1B2C3';
   const databaseObjectSubject = new Subject<OnlineMessage | null>();
@@ -35,6 +47,7 @@ describe('OnlineComponent', () => {
       imports: [RouterTestingModule],
       declarations: [OnlineComponent, HeaderComponent],
       providers: [
+        { provide: NotificationService, useValue: notificationMock },
         { provide: AngularFireDatabase, useValue: database },
         { provide: RealTimeCommunicationService, useValue: rtCommunication },
       ],
@@ -208,23 +221,22 @@ describe('OnlineComponent', () => {
     expect(match.move).toHaveBeenCalledWith({ move: 'a1b2' });
   });
 
-  it('should show an alert when the move represents a checkmate', fakeAsync(() => {
+  it('should show a notification message when the move represents a checkmate', () => {
     const match = {
       move: jasmine.createSpy('move').and.stub(),
     } as any;
-    spyOn(window, 'alert').and.stub();
+    spyOn(notificationMock, 'notifyCheckmateOnline').and.callThrough();
 
     const movement = { move: 'a1b2', color: 'white', mate: true };
     component.match = match;
     component.move(movement);
 
-    tick(510);
-    expect(window.alert).toHaveBeenCalledWith(
-      'The white pieces won this match!'
+    expect(notificationMock.notifyCheckmateOnline).toHaveBeenCalledWith(
+      ChessPieceColor.WHITE
     );
-  }));
+  });
 
-  it('should reset to initial values after a checkmate', fakeAsync(() => {
+  it('should reset to initial values after a checkmate', () => {
     const match = {
       move: jasmine.createSpy('move').and.stub(),
     } as any;
@@ -233,13 +245,13 @@ describe('OnlineComponent', () => {
     component.match = match;
     component.move(movement);
 
-    tick(510);
+    checkMateSubject.next(true);
     expect(component.darkDisabled).toBeTrue();
     expect(component.lightDisabled).toBeTrue();
     expect(component.match).toBeNull();
-  }));
+  });
 
-  it('should show an alert when an opponent joins the match', () => {
+  it('should show a notification message when an opponent joins the match', () => {
     const joinedSubject = new Subject<void>();
     const match = {
       owner: true,
@@ -248,14 +260,14 @@ describe('OnlineComponent', () => {
       onLeft: jasmine.createSpy('onLeft').and.returnValue(of()),
     } as any;
 
-    spyOn(window, 'alert').and.stub();
+    spyOn(notificationMock, 'notifyPlayerJoined').and.callThrough();
     spyOn(rtCommunication, 'createMatch').and.returnValue(match);
     component.newMatch();
 
-    expect(rtCommunication.createMatch).toHaveBeenCalled();
-
     joinedSubject.next();
-    expect(window.alert).toHaveBeenCalledWith('A player has joined the match!');
+
+    expect(rtCommunication.createMatch).toHaveBeenCalled();
+    expect(notificationMock.notifyPlayerJoined).toHaveBeenCalled();
   });
 
   it('should enable the white pieces when an opponent joins the match', () => {
@@ -269,13 +281,14 @@ describe('OnlineComponent', () => {
 
     spyOn(rtCommunication, 'createMatch').and.returnValue(match);
     component.newMatch();
+    joinedSubject.next();
+    playerJoinedSubject.next(true);
 
     expect(rtCommunication.createMatch).toHaveBeenCalled();
-    joinedSubject.next();
     expect(component.lightDisabled).toBeFalse();
   });
 
-  it('should show an alert when the opponent leave the match', () => {
+  it('should show a notification message when the opponent leave the match', () => {
     const leftSubject = new Subject<void>();
     const match = {
       owner: true,
@@ -284,16 +297,15 @@ describe('OnlineComponent', () => {
       onLeft: () => leftSubject.asObservable(),
     } as any;
 
-    spyOn(window, 'alert').and.stub();
     spyOn(rtCommunication, 'createMatch').and.returnValue(match);
+    spyOn(notificationMock, 'notifyPlayerLeft').and.callThrough();
+
     component.newMatch();
+    leftSubject.next();
+    playerLeftSubject.next(true);
 
     expect(rtCommunication.createMatch).toHaveBeenCalled();
-
-    leftSubject.next();
-    expect(window.alert).toHaveBeenCalledWith(
-      'Your opponent has left the match!'
-    );
+    expect(notificationMock.notifyPlayerLeft).toHaveBeenCalled();
   });
 
   it('should reset to initial values when the opponent leave the match', () => {
@@ -307,10 +319,10 @@ describe('OnlineComponent', () => {
 
     spyOn(rtCommunication, 'createMatch').and.returnValue(match);
     component.newMatch();
+    leftSubject.next();
+    playerLeftSubject.next(true);
 
     expect(rtCommunication.createMatch).toHaveBeenCalled();
-    leftSubject.next();
-
     expect(component.darkDisabled).toBeTrue();
     expect(component.lightDisabled).toBeTrue();
     expect(component.match).toBeNull();
@@ -328,10 +340,9 @@ describe('OnlineComponent', () => {
     spyOn(rtCommunication, 'joinMatch').and.returnValue(match);
     component.board = { move: jasmine.createSpy('move') } as any;
     component.joinMatch(matchCodeMock);
+    moveSubject.next({ move: 'a1v2' } as ChessBoardMovement);
 
     expect(rtCommunication.joinMatch).toHaveBeenCalled();
-
-    moveSubject.next({ move: 'a1v2' } as ChessBoardMovement);
     expect(component.darkDisabled).toBeFalse();
   });
 
@@ -397,7 +408,7 @@ describe('OnlineComponent', () => {
     expect(component.board.move).not.toHaveBeenCalled();
   });
 
-  it('should show an alert when the opponents wins the match', fakeAsync(() => {
+  it('should show a notification message when the opponents wins the match', () => {
     const moveSubject = new Subject<ChessBoardMovement>();
     const match = {
       owner: true,
@@ -409,21 +420,17 @@ describe('OnlineComponent', () => {
 
     const movement = { move: 'a1b2', color: 'black', mate: true };
     spyOn(rtCommunication, 'createMatch').and.returnValue(match);
-    spyOn(window, 'alert').and.stub();
+    spyOn(notificationMock, 'notifyCheckmateOnline').and.callThrough();
 
     component.board = { move: jasmine.createSpy('move') } as any;
     component.newMatch();
-
-    expect(rtCommunication.createMatch).toHaveBeenCalled();
     moveSubject.next(movement as ChessBoardMovement);
 
-    tick(510);
-    expect(window.alert).toHaveBeenCalledWith(
-      'The black pieces won this match!'
-    );
-  }));
+    expect(rtCommunication.createMatch).toHaveBeenCalled();
+    expect(notificationMock.notifyCheckmateOnline).toHaveBeenCalled();
+  });
 
-  it('should reset to initial values when the opponents wins the match', fakeAsync(() => {
+  it('should reset to initial values when the opponents wins the match', () => {
     const moveSubject = new Subject<ChessBoardMovement>();
     const match = {
       owner: true,
@@ -438,13 +445,12 @@ describe('OnlineComponent', () => {
 
     component.board = { move: jasmine.createSpy('move') } as any;
     component.newMatch();
+    moveSubject.next(movement as ChessBoardMovement);
+    checkMateSubject.next(true);
 
     expect(rtCommunication.createMatch).toHaveBeenCalled();
-    moveSubject.next(movement as ChessBoardMovement);
-
-    tick(510);
     expect(component.darkDisabled).toBeTrue();
     expect(component.lightDisabled).toBeTrue();
     expect(component.match).toBeNull();
-  }));
+  });
 });

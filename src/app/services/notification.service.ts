@@ -8,7 +8,7 @@ import { ChessPieceColor } from '../model/movement';
 })
 export class NotificationService {
   private readonly mainPage = 'main-page';
-  //  private readonly onlinePage = 'online-page';
+  private readonly onlinePage = 'online-page';
 
   constructor(private confirmationService: ConfirmationService) {}
 
@@ -27,6 +27,33 @@ export class NotificationService {
       acceptLabel: 'New game',
       rejectVisible: false,
       message: `The ${pieceColor} pieces have won the match!`,
+    });
+  }
+
+  notifyCheckmateOnline(pieceColor: ChessPieceColor): Observable<boolean> {
+    return this.confirm(this.onlinePage, {
+      header: 'Check mate',
+      acceptLabel: 'Close',
+      rejectVisible: false,
+      message: `The ${pieceColor} pieces have won the match!`,
+    });
+  }
+
+  notifyPlayerJoined(): Observable<boolean> {
+    return this.confirm(this.onlinePage, {
+      header: 'Player joined',
+      acceptLabel: 'Play',
+      rejectVisible: false,
+      message: `A player has joined the match. You start with white pieces!`,
+    });
+  }
+
+  notifyPlayerLeft(): Observable<boolean> {
+    return this.confirm(this.onlinePage, {
+      header: 'Player left',
+      acceptLabel: 'Leave',
+      rejectVisible: false,
+      message: 'Your opponent has left the match!',
     });
   }
 

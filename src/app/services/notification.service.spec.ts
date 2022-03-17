@@ -30,7 +30,10 @@ describe('NotificationService', () => {
     service.notifyCheckmate(ChessPieceColor.WHITE).subscribe();
     service.resetMatch().subscribe();
     service.restorePreviousMatch().subscribe();
+    service.notifyCheckmateOnline(ChessPieceColor.BLACK).subscribe();
+    service.notifyPlayerJoined().subscribe();
+    service.notifyPlayerLeft().subscribe();
 
-    expect(confirmationMock.confirm).toHaveBeenCalledTimes(3);
+    expect(confirmationMock.confirm).toHaveBeenCalledTimes(6);
   });
 });

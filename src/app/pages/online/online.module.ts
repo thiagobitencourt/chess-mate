@@ -7,6 +7,7 @@ import { ComponentsModule } from 'src/app/components/components.module';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { DividerModule } from 'primeng/divider';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 
 const routes: Route[] = [
   {
@@ -25,6 +26,7 @@ const routes: Route[] = [
     DividerModule,
     NgxChessBoardModule,
     RouterModule.forChild(routes),
+    ConfirmDialogModule,
   ],
 })
 export class OnlineModule {}
