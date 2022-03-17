@@ -2,7 +2,8 @@ import { Injectable, Inject } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { Message } from '../model/message';
 import { MessageType } from '../model/message-type';
-import { ChessBoardMovement } from '../model/movement';
+import { ChessBoardMovement, ChessPieceColor } from '../model/movement';
+import { NotificationService } from './notification.service';
 
 @Injectable({
   providedIn: 'root',
@@ -16,8 +17,12 @@ export class FrameCommunicationService {
   private readonly CHESS_MATE_STATUS = 'CHESS_MATE_STATUS';
   private readonly frames: any = {};
   private frameId!: string;
+  private framesRegistered = 0;
 
-  constructor(@Inject('Window') private window: Window) {
+  constructor(
+    @Inject('Window') private window: Window,
+    private notificationService: NotificationService
+  ) {
     this.init();
   }
 
@@ -30,20 +35,17 @@ export class FrameCommunicationService {
     this.sendMessage({ type: MessageType.MOVE, payload: movement });
   }
 
-  reset(): void {
-    this.clearPreviousChessBoardState();
-    this.dispatchMessage({ frameId: this.frameId, type: MessageType.RESET });
-  }
-
-  restorePrevious(): void {
-    const fen = this.retrievePreviousChessBoardState();
-    if (fen) {
-      this.dispatchMessage({
-        frameId: this.frameId,
-        type: MessageType.RESUME,
-        payload: fen,
-      });
+  reset(force = false): void {
+    if (force) {
+      this.handleReset();
+      return;
     }
+
+    this.notificationService.resetMatch().subscribe((resetMatch) => {
+      if (resetMatch) {
+        this.handleReset();
+      }
+    });
   }
 
   onMove(): Observable<any> {
@@ -118,15 +120,29 @@ export class FrameCommunicationService {
 
     if (message.type === MessageType.MOVE) {
       const movement = message.payload as ChessBoardMovement;
-      if (movement.mate) {
-        this.onCheckMateSubject.next(movement);
-        this.clearPreviousChessBoardState();
-      } else {
-        this.saveCurrentChessBoardState(movement.fen);
-      }
+      movement.mate
+        ? this.handleCheckMate(movement.color)
+        : this.saveCurrentChessBoardState(movement.fen);
     }
 
     this.dispatchMessage(message);
+  }
+
+  private handleCheckMate(color: ChessPieceColor): void {
+    this.clearPreviousChessBoardState();
+    this.notificationService.notifyCheckmate(color).subscribe((newMatch) => {
+      if (newMatch) {
+        this.onResetSubject.next();
+      }
+    });
+  }
+
+  private handleReset(): void {
+    this.clearPreviousChessBoardState();
+    this.dispatchMessage({
+      frameId: this.frameId,
+      type: MessageType.RESET,
+    });
   }
 
   private dispatchMessage(message: Message): void {
@@ -140,6 +156,25 @@ export class FrameCommunicationService {
   private registerIframe(event: any): void {
     const { data, source } = event;
     this.frames[data.frameId] = source;
+    this.framesRegistered++;
+    if (this.framesRegistered === 2) {
+      this.checkForPreviousMatch();
+    }
+  }
+
+  private checkForPreviousMatch(): void {
+    const fen = this.retrievePreviousChessBoardState();
+    if (fen) {
+      this.notificationService.restorePreviousMatch().subscribe((restore) => {
+        if (restore) {
+          this.dispatchMessage({
+            frameId: this.frameId,
+            type: MessageType.RESUME,
+            payload: fen,
+          });
+        }
+      });
+    }
   }
 
   private isMessageValid(message: Message): boolean {

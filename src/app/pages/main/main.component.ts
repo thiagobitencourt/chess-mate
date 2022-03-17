@@ -1,6 +1,5 @@
-import { Component, OnInit, AfterViewChecked, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { ChessBoardMovement } from 'src/app/model/movement';
 import { FrameCommunicationService } from 'src/app/services/frame-communication.service';
 
 @Component({
@@ -8,34 +7,25 @@ import { FrameCommunicationService } from 'src/app/services/frame-communication.
   templateUrl: './main.component.html',
   styleUrls: ['./main.component.scss'],
 })
-export class MainComponent implements OnInit, AfterViewChecked, OnDestroy {
+export class MainComponent implements OnInit, OnDestroy {
   private readonly subscriptions = new Subscription();
   constructor(private frameCommunication: FrameCommunicationService) {}
 
   ngOnInit(): void {
-    const checkSubs = this.frameCommunication
-      .onCheckMate()
-      .subscribe((movement) => {
-        this.onCheckMate(movement);
-      });
-
-    this.subscriptions.add(checkSubs);
-  }
-
-  ngAfterViewChecked(): void {
-    this.frameCommunication.restorePrevious();
+    this.resetListener();
   }
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }
 
-  reset(): void {
-    this.frameCommunication.reset();
+  reset(force = false): void {
+    this.frameCommunication.reset(force);
   }
 
-  private onCheckMate(movement: ChessBoardMovement) {
-    alert(`The ${movement.color} pieces have won the match!`);
-    this.reset();
+  private resetListener(): void {
+    this.subscriptions.add(
+      this.frameCommunication.onReset().subscribe(() => this.reset(true))
+    );
   }
 }
