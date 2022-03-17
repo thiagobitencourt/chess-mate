@@ -13,31 +13,20 @@ export class NotificationService {
   constructor(private confirmationService: ConfirmationService) {}
 
   restorePreviousMatch(): Observable<boolean> {
-    return new Observable<boolean>((subject) => {
-      this.confirmationService.confirm({
-        key: 'main-page',
-        header: 'Restore previous match?',
-        acceptLabel: 'Restore',
-        rejectLabel: 'New game',
-        message:
-          "You haven't finished the last match yet. Would you like to restore it?",
-        accept: () => this.respond(subject, true),
-        reject: () => this.respond(subject, false),
-      });
+    return this.confirm(this.mainPage, {
+      header: 'Restore previous match?',
+      acceptLabel: 'Restore',
+      rejectLabel: 'New game',
+      message: 'Would you like to restore the previous match?',
     });
   }
 
   notifyCheckmate(pieceColor: ChessPieceColor): Observable<boolean> {
-    return new Observable<boolean>((subject) => {
-      this.confirmationService.confirm({
-        key: 'main-page',
-        header: 'Check mate',
-        acceptLabel: 'New game',
-        rejectVisible: false,
-        message: `The ${pieceColor} pieces have won the match!`,
-        accept: () => this.respond(subject, true),
-        reject: () => this.respond(subject, false),
-      });
+    return this.confirm(this.mainPage, {
+      header: 'Check mate',
+      acceptLabel: 'New game',
+      rejectVisible: false,
+      message: `The ${pieceColor} pieces have won the match!`,
     });
   }
 

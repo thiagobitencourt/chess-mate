@@ -11,7 +11,6 @@ import { NotificationService } from './notification.service';
 export class FrameCommunicationService {
   private readonly onMoveSubject = new Subject<ChessBoardMovement>();
   private readonly onResetSubject = new Subject<void>();
-  private readonly onCheckMateSubject = new Subject<ChessBoardMovement>();
   private readonly onResumeSubject = new Subject<string>();
 
   private readonly CHESS_MATE_STATUS = 'CHESS_MATE_STATUS';
@@ -35,13 +34,8 @@ export class FrameCommunicationService {
     this.sendMessage({ type: MessageType.MOVE, payload: movement });
   }
 
-  reset(force = false): void {
-    if (force) {
-      this.handleReset();
-      return;
-    }
-
-    this.notificationService.resetMatch().subscribe((resetMatch) => {
+  reset(): void {
+    this.notificationService.resetMatch().subscribe((resetMatch: boolean) => {
       if (resetMatch) {
         this.handleReset();
       }
@@ -54,10 +48,6 @@ export class FrameCommunicationService {
 
   onReset(): Observable<any> {
     return this.onResetSubject.asObservable();
-  }
-
-  onCheckMate(): Observable<ChessBoardMovement> {
-    return this.onCheckMateSubject.asObservable();
   }
 
   onResume(): Observable<string> {
@@ -130,11 +120,13 @@ export class FrameCommunicationService {
 
   private handleCheckMate(color: ChessPieceColor): void {
     this.clearPreviousChessBoardState();
-    this.notificationService.notifyCheckmate(color).subscribe((newMatch) => {
-      if (newMatch) {
-        this.onResetSubject.next();
-      }
-    });
+    this.notificationService
+      .notifyCheckmate(color)
+      .subscribe((newMatch: boolean) => {
+        if (newMatch) {
+          this.handleReset();
+        }
+      });
   }
 
   private handleReset(): void {
@@ -165,15 +157,17 @@ export class FrameCommunicationService {
   private checkForPreviousMatch(): void {
     const fen = this.retrievePreviousChessBoardState();
     if (fen) {
-      this.notificationService.restorePreviousMatch().subscribe((restore) => {
-        if (restore) {
-          this.dispatchMessage({
-            frameId: this.frameId,
-            type: MessageType.RESUME,
-            payload: fen,
-          });
-        }
-      });
+      this.notificationService
+        .restorePreviousMatch()
+        .subscribe((restore: boolean) => {
+          if (restore) {
+            this.dispatchMessage({
+              frameId: this.frameId,
+              type: MessageType.RESUME,
+              payload: fen,
+            });
+          }
+        });
     }
   }
 
