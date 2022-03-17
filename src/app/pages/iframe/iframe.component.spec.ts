@@ -18,7 +18,12 @@ describe('IframeComponent', () => {
     move: (move: ChessBoardMovement) => {},
   };
 
-  const boardMock = jasmine.createSpyObj('board', ['reset', 'move', 'setFEN']);
+  const boardMock = jasmine.createSpyObj('board', [
+    'reset',
+    'move',
+    'setFEN',
+    'reverse',
+  ]);
 
   beforeEach(async () => {
     windowMock = WindowMock as any;
@@ -162,5 +167,23 @@ describe('IframeComponent', () => {
     expect(component.darkDisabled).toBeTrue();
     expect(component.lightDisabled).toBeFalse();
     expect(component.board.move).toHaveBeenCalledWith('a1b2');
+  });
+
+  it('should reverse the board when the player is using the "black" pieces', () => {
+    const subject = new Subject<ChessBoardMovement>();
+    spyOn(frameCommunicationService, 'onMove').and.returnValue(
+      subject.asObservable()
+    );
+
+    component.ngOnInit();
+    component.board = boardMock;
+    const opponentMove = { move: 'a1b2', color: 'ehite' };
+    subject.next(opponentMove as ChessBoardMovement);
+
+    expect(component.justMuvedByOpponent).toBeTrue();
+    expect(component.started).toBeTrue();
+    expect(component.darkDisabled).toBeFalse();
+    expect(component.lightDisabled).toBeTrue();
+    expect(component.board.reverse).toHaveBeenCalled();
   });
 });

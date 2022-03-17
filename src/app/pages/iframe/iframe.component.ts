@@ -43,6 +43,10 @@ export class IframeComponent implements OnInit, OnDestroy {
       this.darkDisabled = disableBlackColor;
       this.lightDisabled = !disableBlackColor;
       this.started = true;
+
+      if (!disableBlackColor && this.board?.reverse) {
+        this.board?.reverse();
+      }
     }
   }
 
